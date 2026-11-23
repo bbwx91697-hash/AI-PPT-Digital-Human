@@ -25,11 +25,10 @@ jobs:
         shell: pwsh
         run: |
           $url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
-          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\ffmpeg.zip"
-          Expand-Archive -Path "$env:TEMP\ffmpeg.zip" -DestinationPath "$env:TEMP\ffmpeg_ext" -Force
-          $ff = Get-ChildItem "$env:TEMP\ffmpeg_ext" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
-          New-Item -ItemType Directory -Force -Path "D:\ffmpeg\bin" | Out-Null
-          Copy-Item $ff.FullName "D:\ffmpeg\bin\ffmpeg.exe" -Force
+          Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\ffmpeg.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\ffmpeg.zip" -DestinationPath "$env:RUNNER_TEMP\ffmpeg_ext" -Force
+          $ff = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_ext" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
+          $ff.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build Portable ZIP
         shell: powershell
@@ -43,9 +42,11 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          $notes = @"
-          ### AI PPT 数字人教学助手 $tag（Windows 64 位绿色免安装版）
-          - 下载下方 \`AI-PPT-Digital-Human-Win64-Portable.zip\` 解压到任意文件夹，双击 \`启动数字人PPT助手.bat\` 即可运行（已内置 Python 与 FFmpeg）。
-          - 如需默认 **Qwen3-TTS 0.6B 本地高音质语音**（推荐），请再双击目录内的 \`一键安装本地Qwen3高音质模型.bat\`（自动识别 NVIDIA 显卡 CUDA 或轻量 CPU 版，走国内镜像）。
-          "@
+          $notes = @'
+### AI PPT 数字人教学助手 (Windows 64 位绿色免安装版)
+
+1. 下载下方 **AI-PPT-Digital-Human-Win64-Portable.zip** 并解压到任意文件夹（已内置 Python 与 FFmpeg，无需手动配置）。
+2. 推荐双击目录内 **一键安装本地Qwen3高音质模型.bat** 部署默认 Qwen3-TTS 0.6B 高音质语音（自动识别 NVIDIA 显卡 CUDA 或轻量 CPU 版，走国内镜像）。
+3. 双击 **启动数字人PPT助手.bat** 即可使用！
+'@
           gh release create $tag "dist\AI-PPT-Digital-Human-Win64-Portable.zip" --title "AI PPT 数字人教学助手 $tag" --notes $notes
