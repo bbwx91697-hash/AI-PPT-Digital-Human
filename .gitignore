@@ -1,0 +1,30 @@
+# Secrets & credentials (NEVER commit)
+config/*.dpapi
+config/*key*
+*.key
+*.pem
+
+# Local environments, models, portable runtime & build outputs
+.cache/
+.venv/
+venv_qwen_tts/
+models/
+runtime/
+bin/
+dist/
+build/
+
+# Personal PPT decks, workspaces, exports & test fixtures
+projects/
+input/
+output/
+generated/
+reports/
+tests/fixtures/
+
+# Python & OS artifacts
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store
+Thumbs.db
