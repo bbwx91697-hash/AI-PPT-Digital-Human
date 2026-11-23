@@ -42,11 +42,12 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          $notes = @'
-### AI PPT 数字人教学助手 (Windows 64 位绿色免安装版)
-
-1. 下载下方 **AI-PPT-Digital-Human-Win64-Portable.zip** 并解压到任意文件夹（已内置 Python 与 FFmpeg，无需手动配置）。
-2. 推荐双击目录内 **一键安装本地Qwen3高音质模型.bat** 部署默认 Qwen3-TTS 0.6B 高音质语音（自动识别 NVIDIA 显卡 CUDA 或轻量 CPU 版，走国内镜像）。
-3. 双击 **启动数字人PPT助手.bat** 即可使用！
-'@
-          gh release create $tag "dist\AI-PPT-Digital-Human-Win64-Portable.zip" --title "AI PPT 数字人教学助手 $tag" --notes $notes
+          $notesFile = "$env:RUNNER_TEMP\release_notes.md"
+          @(
+            "### AI PPT 数字人教学助手 $tag (Windows 64 位绿色免安装版)"
+            ""
+            "1. 下载下方 **AI-PPT-Digital-Human-Win64-Portable.zip** 并解压到任意文件夹（已内置 Python 与 FFmpeg，无需手动配置）。"
+            "2. 推荐双击目录内 **一键安装本地Qwen3高音质模型.bat** 部署默认 Qwen3-TTS 0.6B 高音质语音（自动识别 NVIDIA 显卡 CUDA 或轻量 CPU 版，走国内镜像）。"
+            "3. 双击 **启动数字人PPT助手.bat** 即可使用！"
+          ) | Set-Content -Path $notesFile -Encoding utf8
+          gh release create $tag "dist\AI-PPT-Digital-Human-Win64-Portable.zip" --title "AI PPT 数字人教学助手 $tag" --notes-file $notesFile
