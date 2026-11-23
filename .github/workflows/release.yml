@@ -1,0 +1,51 @@
+name: Build Windows Portable Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download static FFmpeg
+        shell: pwsh
+        run: |
+          $url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\ffmpeg.zip"
+          Expand-Archive -Path "$env:TEMP\ffmpeg.zip" -DestinationPath "$env:TEMP\ffmpeg_ext" -Force
+          $ff = Get-ChildItem "$env:TEMP\ffmpeg_ext" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path "D:\ffmpeg\bin" | Out-Null
+          Copy-Item $ff.FullName "D:\ffmpeg\bin\ffmpeg.exe" -Force
+
+      - name: Build Portable ZIP
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\src\build_portable.ps1"
+
+      - name: Create Release and Upload Asset
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $notes = @"
+          ### AI PPT 数字人教学助手 $tag（Windows 64 位绿色免安装版）
+          - 下载下方 \`AI-PPT-Digital-Human-Win64-Portable.zip\` 解压到任意文件夹，双击 \`启动数字人PPT助手.bat\` 即可运行（已内置 Python 与 FFmpeg）。
+          - 如需默认 **Qwen3-TTS 0.6B 本地高音质语音**（推荐），请再双击目录内的 \`一键安装本地Qwen3高音质模型.bat\`（自动识别 NVIDIA 显卡 CUDA 或轻量 CPU 版，走国内镜像）。
+          "@
+          gh release create $tag "dist\AI-PPT-Digital-Human-Win64-Portable.zip" --title "AI PPT 数字人教学助手 $tag" --notes $notes
